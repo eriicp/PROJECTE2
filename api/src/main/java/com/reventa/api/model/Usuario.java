@@ -3,12 +3,16 @@ package com.reventa.api.model;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Collection;
+import java.util.Collections;
 
 import com.reventa.api.model.enums.EstadoVerificacion;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
 @Table(name = "usuarios")
-public class Usuario {
+public class Usuario implements UserDetails { 
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,85 +47,53 @@ public class Usuario {
     @Column(name = "fecha_registro", insertable = false, updatable = false)
     private Timestamp fechaRegistro;
 
-    public Long getIdUsuario() {
-        return idUsuario;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+       return Collections.emptyList();
     }
 
-    public void setIdUsuario(Long idUsuario) {
-        this.idUsuario = idUsuario;
+    @Override
+    public String getPassword() {
+        return this.passwordHash;
     }
 
-    public String getNombreCompleto() {
-        return nombreCompleto;
+    @Override
+    public String getUsername() {
+        return this.email;
     }
 
-    public void setNombreCompleto(String nombreCompleto) {
-        this.nombreCompleto = nombreCompleto;
-    }
+    @Override
+    public boolean isAccountNonExpired() { return true; }
 
-    public String getEmail() {
-        return email;
-    }
+    @Override
+    public boolean isAccountNonLocked() { return true; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    @Override
+    public boolean isCredentialsNonExpired() { return true; }
 
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public String getDniNie() {
-        return dniNie;
-    }
-
-    public void setDniNie(String dniNie) {
-        this.dniNie = dniNie;
-    }
-
-    public EstadoVerificacion getEstadoVerificacion() {
-        return estadoVerificacion;
-    }
-
-    public void setEstadoVerificacion(EstadoVerificacion estadoVerificacion) {
-        this.estadoVerificacion = estadoVerificacion;
-    }
-
-    public String getStripeAccountId() {
-        return stripeAccountId;
-    }
-
-    public void setStripeAccountId(String stripeAccountId) {
-        this.stripeAccountId = stripeAccountId;
-    }
-
-    public BigDecimal getReputacionMedia() {
-        return reputacionMedia;
-    }
-
-    public void setReputacionMedia(BigDecimal reputacionMedia) {
-        this.reputacionMedia = reputacionMedia;
-    }
-
-    public Integer getTotalResenas() {
-        return totalResenas;
-    }
-
-    public void setTotalResenas(Integer totalResenas) {
-        this.totalResenas = totalResenas;
-    }
-
-    public Timestamp getFechaRegistro() {
-        return fechaRegistro;
-    }
-
-    public void setFechaRegistro(Timestamp fechaRegistro) {
-        this.fechaRegistro = fechaRegistro;
-    }
+    @Override
+    public boolean isEnabled() { return true; }
 
 
+    public Long getIdUsuario() { return idUsuario; }
+    public void setIdUsuario(Long idUsuario) { this.idUsuario = idUsuario; }
+    public String getNombreCompleto() { return nombreCompleto; }
+    public void setNombreCompleto(String nombreCompleto) { this.nombreCompleto = nombreCompleto; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public String getDniNie() { return dniNie; }
+    public void setDniNie(String dniNie) { this.dniNie = dniNie; }
+    public EstadoVerificacion getEstadoVerificacion() { return estadoVerificacion; }
+    public void setEstadoVerificacion(EstadoVerificacion estadoVerificacion) { this.estadoVerificacion = estadoVerificacion; }
+    public String getStripeAccountId() { return stripeAccountId; }
+    public void setStripeAccountId(String stripeAccountId) { this.stripeAccountId = stripeAccountId; }
+    public BigDecimal getReputacionMedia() { return reputacionMedia; }
+    public void setReputacionMedia(BigDecimal reputacionMedia) { this.reputacionMedia = reputacionMedia; }
+    public Integer getTotalResenas() { return totalResenas; }
+    public void setTotalResenas(Integer totalResenas) { this.totalResenas = totalResenas; }
+    public Timestamp getFechaRegistro() { return fechaRegistro; }
+    public void setFechaRegistro(Timestamp fechaRegistro) { this.fechaRegistro = fechaRegistro; }
 }
