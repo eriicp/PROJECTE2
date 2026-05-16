@@ -1,22 +1,36 @@
 package com.reventa.api.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.reventa.api.dto.EventoDTO;
+import com.reventa.api.model.Evento;
 import com.reventa.api.model.enums.CategoriaEvento;
 import com.reventa.api.service.EventoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/eventos")
 public class EventoController {
 
-    @Autowired
-    private EventoService eventoService;
+    private final EventoService eventoService;
 
-    // Endpoint para coger TODOS los eventos
+
+    public EventoController(EventoService eventoService) {
+        this.eventoService = eventoService;
+    }
+
+    @GetMapping("/proximos")
+    public ResponseEntity<List<Evento>> getEventosProximosSeisMeses() {
+
+        List<Evento> proximosEventos = eventoService.obtenerProximosEventos();
+        
+        return ResponseEntity.ok(proximosEventos);
+    }
 
     @GetMapping
     public ResponseEntity<List<EventoDTO>> getAllEventos() {

@@ -1,19 +1,32 @@
 package com.reventa.api.service;
 
-import com.reventa.api.dto.EventoDTO;
-import com.reventa.api.model.enums.CategoriaEvento;
-import com.reventa.api.repository.EventoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
+import com.reventa.api.dto.EventoDTO;
+import com.reventa.api.model.Evento;
+import com.reventa.api.model.enums.CategoriaEvento;
+import com.reventa.api.repository.EventoRepository; m
+
 @Service
 public class EventoService {
+private final EventoRepository eventoRepository;
 
-    @Autowired
-    private EventoRepository eventoRepository;
+    // Inyección del repositorio
+    public EventoService(EventoRepository eventoRepository) {
+        this.eventoRepository = eventoRepository;
+    }
+
+   public List<Evento> obtenerProximosEventos() {
+        LocalDateTime ahora = LocalDateTime.now();
+        LocalDateTime dentroDeSeisMeses = ahora.plusMonths(6);
+        
+        // Llamamos al nuevo método con @Query
+        return eventoRepository.buscarProximosEventos(ahora, dentroDeSeisMeses);
+    }
 
     // Obtener todos los eventos
     public List<EventoDTO> getAllEventos() {

@@ -1,8 +1,9 @@
 package com.reventa.api.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.reventa.api.model.enums.EstadoPago;
@@ -16,7 +17,7 @@ public class Transaccion {
 
     @ManyToOne
     @JoinColumn(name = "id_entrada")
-    private Entrada entrada;
+    private Entrada entrada; // Debes tener la entidad Entrada creada
 
     @ManyToOne
     @JoinColumn(name = "id_comprador")
@@ -31,6 +32,8 @@ public class Transaccion {
     private EstadoPago estadoPago; // Enum: PENDIENTE, COMPLETADO, FALLIDO
 
     private LocalDateTime fechaTransaccion = LocalDateTime.now();
+    
+    // Getters y Setters...
 
     public Long getIdTransaccion() {
         return idTransaccion;

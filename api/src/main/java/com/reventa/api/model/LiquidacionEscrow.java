@@ -1,7 +1,6 @@
 package com.reventa.api.model;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 import com.reventa.api.model.enums.EstadoFondos;
@@ -23,6 +22,8 @@ public class LiquidacionEscrow {
     private EstadoFondos estadoFondos = EstadoFondos.RETENIDO;
 
     private String stripeTransferId;
+    
+    // Getters y Setters...
 
     public Long getIdEscrow() {
         return idEscrow;
