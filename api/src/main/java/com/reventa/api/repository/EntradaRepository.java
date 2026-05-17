@@ -1,7 +1,9 @@
 package com.reventa.api.repository;
 
 
-import org.springframework.data.domain.Page;
+import java.math.BigDecimal;
+import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,9 +14,6 @@ import com.reventa.api.model.Entrada;
 import com.reventa.api.model.enums.CategoriaEvento;
 import com.reventa.api.model.enums.EstadoEntrada;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 @Repository
 public interface EntradaRepository extends JpaRepository<Entrada, Long> {
 
@@ -23,10 +22,17 @@ public interface EntradaRepository extends JpaRepository<Entrada, Long> {
     List<Entrada> findByCategoriaEvento(CategoriaEvento categoria);
 
     
-    // JPQL para buscar entradas por rango de precio (como en el original)
+    // JPQL para buscar entradas por rango de precio 
     @Query("SELECT e FROM Entrada e WHERE e.precioReventa >= :precioMin AND e.precioReventa <= :precioMax AND e.estado = 'disponible'")
     List<Entrada> findDisponiblesByPriceRangeJPQL(@Param("precioMin") BigDecimal precioMin, @Param("precioMax") BigDecimal precioMax, Pageable pageable);
 
     // Entradas destacadas
     List<Entrada> findByEsDestacadaTrue();
+
+    List<Entrada> findByEventoIdEvento(Long idEvento);
+
+    List<Entrada> findByEventoIdEventoAndEstado(Long idEvento, EstadoEntrada estado);
+
+    @Query("SELECT e FROM Entrada e WHERE e.vendedor.idUsuario = :idUsuario")
+    List<Entrada> buscarMisVentas(@Param("idUsuario") Long idUsuario);
 }

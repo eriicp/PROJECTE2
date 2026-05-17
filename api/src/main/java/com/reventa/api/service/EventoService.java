@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import com.reventa.api.dto.EventoDTO;
 import com.reventa.api.model.Evento;
 import com.reventa.api.model.enums.CategoriaEvento;
-import com.reventa.api.repository.EventoRepository; m
+import com.reventa.api.repository.EventoRepository;
 
 @Service
 public class EventoService {

@@ -1,24 +1,50 @@
 package com.reventa.api.controller;
 
-import com.reventa.api.dto.UsuarioDTO;
-import com.reventa.api.repository.UsuarioRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.reventa.api.dto.UsuarioDTO;
+import com.reventa.api.dto.UsuarioPerfilDTO;
+import com.reventa.api.model.Usuario;
+import com.reventa.api.repository.UsuarioRepository;
 
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
 
-    @Autowired
-    UsuarioRepository usuarioRepository;
+   private final UsuarioRepository usuarioRepository;
 
+    public UsuarioController(UsuarioRepository usuarioRepository) {
+        this.usuarioRepository = usuarioRepository;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UsuarioPerfilDTO> obtenerPerfil(@PathVariable Long id) {
+        
+        Usuario usuario = usuarioRepository.findById(id).orElse(null);
+        
+        if (usuario == null) {
+            return ResponseEntity.notFound().build(); // Devuelve 404
+        }
+
+        UsuarioPerfilDTO perfilDTO;
+        perfilDTO = new UsuarioPerfilDTO(
+               usuario.getIdUsuario(),
+               usuario.getNombreCompleto(),
+               usuario.getEmail(),
+               "verificado", 
+               4.8, // valores de prueba
+               15   //valores de prueba 
+       );
+
+        return ResponseEntity.ok(perfilDTO); // Devuelve 200 OK con los datos
+    }
     @GetMapping
     public ResponseEntity<List<UsuarioDTO>> getAllUsuarios() {
         

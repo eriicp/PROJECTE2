@@ -1,20 +1,25 @@
 package com.reventa.api.security;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
-import java.util.Date;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
     // Usa una clave de al menos 64 caracteres para producción
-    private final String jwtSecret = "esta_es_una_clave_secreta_muy_larga_y_segura_para_mi_app_de_reventa_2024";
+    private final String jwtSecret = "esta_es_una_clave_secreta_muy_larga_y_segura_para_mi_app_de_reventa_2026";
     private final int jwtExpirationMs = 86400000; // 24 horas
 
     private Key key() {

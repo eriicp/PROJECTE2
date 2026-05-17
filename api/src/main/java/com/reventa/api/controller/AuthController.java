@@ -1,27 +1,24 @@
 package com.reventa.api.controller;
 
-import com.reventa.api.dto.JwtResponse;
-import com.reventa.api.dto.LoginRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.reventa.api.dto.AuthResponseDTO;
+import com.reventa.api.dto.LoginRequestDTO;
 import com.reventa.api.dto.RegisterRequest;
 import com.reventa.api.model.Usuario;
 import com.reventa.api.model.enums.EstadoVerificacion;
 import com.reventa.api.repository.UsuarioRepository;
 import com.reventa.api.security.JwtUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -32,19 +29,20 @@ public class AuthController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    // --- ENDPOINT DE LOGIN (El que ya teníamos) ---
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO request) {
+        String tokenGenerado = jwtUtils.generateJwtToken(request.getEmail()); 
+        
+        //Buscamos al usuario en la BBDD para sacar su ID
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication.getName());
-
-        return ResponseEntity.ok(new JwtResponse(jwt));
+        // Devolvemos el DTO con ambas cosas
+        AuthResponseDTO respuesta = new AuthResponseDTO(tokenGenerado, usuario.getIdUsuario());
+        
+        return ResponseEntity.ok(respuesta);
     }
 
-    // --- NUEVO ENDPOINT DE REGISTRO ---
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest signUpRequest) {
         // 1. Verificamos si el email ya existe
@@ -63,7 +61,7 @@ public class AuthController {
         user.setEmail(signUpRequest.getEmail());
         user.setDniNie(signUpRequest.getDniNie());
         
-        // ¡Súper importante! Encriptamos la contraseña con BCrypt
+        // Encriptamos la contraseña con BCrypt
         user.setPasswordHash(passwordEncoder.encode(signUpRequest.getPassword()));
         
         // Asignamos el estado inicial
