@@ -55,4 +55,26 @@ public class S3Service {
         // Construir y retornar la URL pública del objeto alojado en S3
         return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, nombreArchivo);
     }
+
+    public String subirDni(MultipartFile file) throws IOException {
+        String contentType = file.getContentType();
+        if (contentType == null || !(contentType.equals("application/pdf") || contentType.startsWith("image/"))) {
+            throw new IllegalArgumentException("El archivo debe ser un PDF o una imagen válida.");
+        }
+        
+        // Asignar extensión correcta
+        String extension = contentType.equals("application/pdf") ? ".pdf" : ".jpg";
+        String nombreArchivo = "dni/" + UUID.randomUUID().toString() + extension;
+        
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+            .bucket(bucketName)
+            .key(nombreArchivo)
+            .contentType(contentType)
+            .build();
+
+        s3Client.putObject(putObjectRequest,
+            RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        
+        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, nombreArchivo);
+    }
 }

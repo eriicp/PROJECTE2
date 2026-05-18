@@ -1,14 +1,23 @@
 package com.reventa.api.model;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.reventa.api.model.enums.EstadoVerificacion;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.reventa.api.model.enums.EstadoVerificacion;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "usuarios")
@@ -47,6 +56,9 @@ public class Usuario implements UserDetails {
     @Column(name = "fecha_registro", insertable = false, updatable = false)
     private Timestamp fechaRegistro;
 
+    @Column(name = "url_dni", length = 500)
+    private String urlDni;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -75,7 +87,8 @@ public class Usuario implements UserDetails {
     @Override
     public boolean isEnabled() { return true; }
 
-
+    public String getUrlDni() { return urlDni; }
+    public void setUrlDni(String urlDni) { this.urlDni = urlDni; }
     public Long getIdUsuario() { return idUsuario; }
     public void setIdUsuario(Long idUsuario) { this.idUsuario = idUsuario; }
     public String getNombreCompleto() { return nombreCompleto; }

@@ -6,19 +6,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.reventa.api.dto.AuthResponseDTO;
 import com.reventa.api.dto.LoginRequestDTO;
-import com.reventa.api.dto.RegisterRequest;
 import com.reventa.api.model.Usuario;
 import com.reventa.api.model.enums.EstadoVerificacion;
 import com.reventa.api.repository.UsuarioRepository;
 import com.reventa.api.security.JwtUtils;
+import com.reventa.api.service.S3Service;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    @Autowired
+    private S3Service s3Service;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -43,35 +48,38 @@ public class AuthController {
         return ResponseEntity.ok(respuesta);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest signUpRequest) {
-        // 1. Verificamos si el email ya existe
-        if (usuarioRepository.existsByEmail(signUpRequest.getEmail())) {
+    @PostMapping(value = "/register", consumes = "multipart/form-data")
+    public ResponseEntity<?> registerUser(
+            @RequestParam("nombreCompleto") String nombreCompleto,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password,
+            @RequestParam("dniNie") String dniNie,
+            @RequestPart("archivoDni") org.springframework.web.multipart.MultipartFile archivoDni) {
+        
+        if (usuarioRepository.existsByEmail(email)) {
             return ResponseEntity.badRequest().body("Error: ¡El email ya está en uso!");
         }
-
-        // 2. Verificamos si el DNI ya existe
-        if (usuarioRepository.existsByDniNie(signUpRequest.getDniNie())) {
+        if (usuarioRepository.existsByDniNie(dniNie)) {
             return ResponseEntity.badRequest().body("Error: ¡El DNI/NIE ya está registrado!");
         }
 
-        // 3. Creamos el nuevo usuario con los datos del DTO
-        Usuario user = new Usuario();
-        user.setNombreCompleto(signUpRequest.getNombreCompleto());
-        user.setEmail(signUpRequest.getEmail());
-        user.setDniNie(signUpRequest.getDniNie());
-        
-        // Encriptamos la contraseña con BCrypt
-        user.setPasswordHash(passwordEncoder.encode(signUpRequest.getPassword()));
-        
-        // Asignamos el estado inicial
-        user.setEstadoVerificacion(EstadoVerificacion.pendiente);
+        try {
+            // Subimos el archivo a S3 y obtenemos la URL
+            String urlDni = s3Service.subirDni(archivoDni);
 
-        // Los campos reputacionMedia y totalResenas ya tienen valores por defecto en tu clase Usuario
+            Usuario user = new Usuario();
+            user.setNombreCompleto(nombreCompleto);
+            user.setEmail(email);
+            user.setDniNie(dniNie);
+            user.setPasswordHash(passwordEncoder.encode(password));
+            user.setEstadoVerificacion(EstadoVerificacion.pendiente);
+            user.setUrlDni(urlDni); // Guardamos la URL en base de datos
 
-        // 4. Guardamos en la base de datos MySQL
-        usuarioRepository.save(user);
-
-        return ResponseEntity.ok("¡Usuario registrado con éxito!");
+            usuarioRepository.save(user);
+            return ResponseEntity.ok("¡Usuario registrado con éxito!");
+            
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al subir el DNI o registrar usuario: " + e.getMessage());
+        }
     }
 }
