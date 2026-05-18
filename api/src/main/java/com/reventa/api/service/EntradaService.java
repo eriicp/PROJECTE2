@@ -105,9 +105,7 @@ public class EntradaService {
         nuevaEntrada.setTipoAsiento(zona);
         nuevaEntrada.setFila(fila);
         nuevaEntrada.setAsiento(asiento);
-        
-        // futura implementacion para tener pdfs de entrada funcionando correctamente
-        // nuevaEntrada.setUrlPdf(urlPdfS3); 
+        nuevaEntrada.setUrlPdf(urlPdfS3); 
 
         // La marcamos como disponible para que salga en la app
         nuevaEntrada.setEstado(EstadoEntrada.disponible); 

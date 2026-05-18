@@ -3,6 +3,7 @@ package com.reventa.api.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,13 +18,18 @@ import com.reventa.api.model.enums.EstadoVerificacion;
 import com.reventa.api.repository.UsuarioRepository;
 import com.reventa.api.security.JwtUtils;
 import com.reventa.api.service.S3Service;
+import com.reventa.api.service.StripeService;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
     private S3Service s3Service;
+
+    @Autowired
+    private StripeService stripeService;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -63,9 +69,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Error: ¡El DNI/NIE ya está registrado!");
         }
 
-        try {
-            // Subimos el archivo a S3 y obtenemos la URL
+       try {
             String urlDni = s3Service.subirDni(archivoDni);
+
+            // 1. Creamos la cuenta en Stripe y sacamos el ID
+            String stripeAccountId = stripeService.crearCuentaConectada(email);
+            
+            // 2. Generamos el enlace para el usuario
+            String urlOnboarding = stripeService.generarLinkOnboarding(stripeAccountId);
 
             Usuario user = new Usuario();
             user.setNombreCompleto(nombreCompleto);
@@ -73,13 +84,22 @@ public class AuthController {
             user.setDniNie(dniNie);
             user.setPasswordHash(passwordEncoder.encode(password));
             user.setEstadoVerificacion(EstadoVerificacion.pendiente);
-            user.setUrlDni(urlDni); // Guardamos la URL en base de datos
+            user.setUrlDni(urlDni);
+            
+            // 3. Guardamos el ID de Stripe en la BBDD para que el sistema Escrow Node.js lo use luego
+            user.setStripeAccountId(stripeAccountId); 
 
             usuarioRepository.save(user);
-            return ResponseEntity.ok("¡Usuario registrado con éxito!");
+
+            // 4. Devolvemos el link a Android usando un Map
+            java.util.Map<String, String> response = new java.util.HashMap<>();
+            response.put("message", "Usuario registrado correctamente.");
+            response.put("stripeUrl", urlOnboarding);
+
+            return ResponseEntity.ok(response);
             
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error al subir el DNI o registrar usuario: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(java.util.Map.of("error", e.getMessage()));
         }
     }
 }

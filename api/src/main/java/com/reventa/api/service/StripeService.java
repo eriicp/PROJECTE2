@@ -20,7 +20,11 @@ import com.reventa.api.repository.EntradaRepository;
 import com.reventa.api.repository.LiquidacionEscrowRepository;
 import com.reventa.api.repository.TransaccionRepository;
 import com.stripe.Stripe;
+import com.stripe.model.Account;
+import com.stripe.model.AccountLink;
 import com.stripe.model.PaymentIntent;
+import com.stripe.param.AccountCreateParams;
+import com.stripe.param.AccountLinkCreateParams;
 import com.stripe.param.PaymentIntentCreateParams;
 
 import jakarta.annotation.PostConstruct;
@@ -142,5 +146,29 @@ public class StripeService {
         escrowRepository.save(escrow);
         
         System.out.println("✅ Transacción " + transaccion.getIdTransaccion() + " completada. Fondos retenidos en Escrow.");
+    }
+
+    // 1. Crea la cuenta vacía en Stripe
+    public String crearCuentaConectada(String email) throws Exception {
+        AccountCreateParams params = AccountCreateParams.builder()
+            .setType(AccountCreateParams.Type.EXPRESS)
+            .setEmail(email)
+            .build();
+            
+        Account account = Account.create(params);
+        return account.getId(); // Ej: acct_1Nxyz...
+    }
+
+    // 2. Genera el link para que el usuario rellene sus datos bancarios
+    public String generarLinkOnboarding(String accountId) throws Exception {
+        AccountLinkCreateParams params = AccountLinkCreateParams.builder()
+            .setAccount(accountId)
+            .setRefreshUrl("https://tudominio.com/reauth") // URL si el link expira
+            .setReturnUrl("https://tudominio.com/success") // URL cuando termina con éxito
+            .setType(AccountLinkCreateParams.Type.ACCOUNT_ONBOARDING)
+            .build();
+
+        AccountLink accountLink = AccountLink.create(params);
+        return accountLink.getUrl();
     }
 }
